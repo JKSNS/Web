@@ -37,10 +37,6 @@ sudo systemctl restart apache2
 echo "Installing MariaDB..."
 sudo apt-get install -y mariadb-server
 
-echo "Securing MariaDB installation..."
-# Run the secure installation. This step is interactive.
-sudo mysql_secure_installation
-
 echo "Creating PrestaShop database and user..."
 # Replace 'PASSWORD' with your desired strong password
 sudo mysql -u root -p <<EOF
