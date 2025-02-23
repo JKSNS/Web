@@ -33,19 +33,22 @@ sudo apt-get install -y php-cli php-common php-mbstring php-gd php-intl php-xml 
 echo "Restarting Apache to load PHP modules..."
 sudo systemctl restart apache2
 
-# --- Step 5: Install and Secure MariaDB ---
+# --- Step 5: Install ---
 echo "Installing MariaDB..."
 sudo apt-get install -y mariadb-server
 
-echo "Creating PrestaShop database and user..."
-# Replace 'PASSWORD' with your desired strong password
-sudo mysql -u root -p <<EOF
-CREATE DATABASE prestashop;
-CREATE USER 'ps_user'@'localhost' IDENTIFIED BY 'PASSWORD';
-GRANT ALL ON prestashop.* TO 'ps_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-EOF
+# 1. Create the PrestaShop database
+sudo mysql -u root -p -e "CREATE DATABASE prestashop;"
+
+# 2. Create the ps_user user and set password
+sudo mysql -u root -p -e "CREATE USER 'ps_user'@'localhost' IDENTIFIED BY 'prestashop';"
+
+# 3. Grant privileges to ps_user on the prestashop database
+sudo mysql -u root -p -e "GRANT ALL ON prestashop.* TO 'ps_user'@'localhost';"
+
+# 4. Flush privileges
+sudo mysql -u root -p -e "FLUSH PRIVILEGES;"
+
 
 # --- Step 6: Download and Extract PrestaShop ---
 echo "Downloading PrestaShop..."

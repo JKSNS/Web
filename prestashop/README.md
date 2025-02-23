@@ -2,6 +2,18 @@
 
 Congratulations! You have successfully executed the PrestaShop installation script. This README will guide you through the final steps to get your PrestaShop store up and running.
 
+Remember to create a prestashop db user: 
+
+echo "Creating PrestaShop database and user..."
+# Replace 'PASSWORD' with your desired strong password
+sudo mysql -u root -p <<EOF
+CREATE DATABASE prestashop;
+CREATE USER 'ps_user'@'localhost' IDENTIFIED BY 'PASSWORD';
+GRANT ALL ON prestashop.* TO 'ps_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+EOF
+
 ## 1. Access the Installation Wizard
 
 1. **Open your browser** and navigate to the **public IP address** or **domain name** of your server.  
