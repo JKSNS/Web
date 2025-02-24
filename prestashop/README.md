@@ -30,7 +30,7 @@ even though the file is clearly there, it likely means the script was created or
    sudo ./install.sh
    ```
 
-Once the script runs successfully, follow the steps below to complete your Wordpress setup.
+Once the script runs successfully, follow the steps below to complete your Prestashop setup.
 
 ## 1. Access the Installation Wizard
 
