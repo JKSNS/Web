@@ -1,6 +1,6 @@
 **Post‑Installation Instructions for IIS on Windows Server 2012/2016**
 
-Congratulations! You have successfully executed the IIS installation script. This README will guide you through final steps to verify and configure your IIS environment.
+After executing the IIS installation script... This README will guide you through final steps to verify and configure your IIS environment.
 
 ---
 
