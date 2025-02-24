@@ -8,6 +8,8 @@ Congratulations! You have successfully executed the PrestaShop installation scri
    - For example: `http://YOUR_SERVER_IP/prestashop`  
 2. You should see the **PrestaShop Installation Assistant** screen.
 
+**note:** If you don't see the prestashop site but there's been "https://" added to the beginning of your web query, you must remove that and directly navigate to `YOUR_SERVER_IP/prestashop` since TLS has not been configured. 
+
 ## 2. License Agreements & System Compatibility
 
 1. **Select your preferred language** and click **Next**.  
