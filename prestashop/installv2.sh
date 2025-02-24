@@ -1,7 +1,12 @@
 #!/bin/bash
+set -e
 
-# Update package list and install required packages
-apt update -y
+# Update and upgrade system packages
+echo "Updating system..."
+apt update -y && apt upgrade -y
+
+# Install required packages (Apache, PHP, MariaDB, and unzip)
+echo "Installing required packages..."
 apt install -y apache2 php libapache2-mod-php php-mysql php-gd php-mbstring php-zip php-curl php-xml unzip mariadb-server
 
 # Start and enable services
@@ -17,34 +22,45 @@ mysql -e "DROP DATABASE IF EXISTS test;"
 mysql -e "FLUSH PRIVILEGES;"
 
 # Create PrestaShop database and user
-mysql -uroot -prootpass -e "CREATE DATABASE prestashop_db;"
-mysql -uroot -prootpass -e "CREATE USER 'prestashop_user'@'localhost' IDENTIFIED BY 'pspass';"
-mysql -uroot -prootpass -e "GRANT ALL PRIVILEGES ON prestashop_db.* TO 'prestashop_user'@'localhost';"
+echo "Setting up the database..."
+mysql -uroot -prootpass -e "CREATE DATABASE prestashop;"
+mysql -uroot -prootpass -e "CREATE USER 'ps_user'@'localhost' IDENTIFIED BY 'password';"
+mysql -uroot -prootpass -e "GRANT ALL PRIVILEGES ON prestashop.* TO 'ps_user'@'localhost';"
 mysql -uroot -prootpass -e "FLUSH PRIVILEGES;"
 
-# Download and extract PrestaShop (using a stable version as of Feb 2025)
+# Change directory to Apache web root and download PrestaShop
+echo "Downloading PrestaShop..."
 cd /var/www/html
 wget https://github.com/PrestaShop/PrestaShop/releases/download/8.1.2/prestashop_8.1.2.zip -O prestashop.zip
-unzip prestashop.zip
-unzip prestashop_*.zip # Extracts the inner zip file
-mv prestashop prestashop_files # Rename for clarity
-rm -f prestashop.zip prestashop_*.zip index.html
 
-# Set permissions
+# Unzip PrestaShop
+echo "Unzipping PrestaShop..."
+unzip prestashop.zip
+unzip prestashop_*.zip  # Extracts the inner zip file (PrestaShop archives often have nested zips)
+mv prestashop prestashop_files  # Rename for clarity
+rm -f prestashop.zip prestashop_*.zip
+
+# Set permissions for Apache
+echo "Setting permissions..."
 chown -R www-data:www-data /var/www/html/prestashop_files
 chmod -R 755 /var/www/html/prestashop_files
 
-# Configure Apache
+# Configure Apache to allow .htaccess overrides and serve PrestaShop
+echo "Configuring Apache..."
 cat > /etc/apache2/sites-available/prestashop.conf << EOL
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html/prestashop_files
+    <Directory /var/www/html/prestashop_files>
+        AllowOverride All
+        Require all granted
+    </Directory>
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOL
 
-# Enable site and restart Apache
+# Enable the site, rewrite module, and restart Apache
 a2ensite prestashop.conf
 a2enmod rewrite
 systemctl restart apache2
@@ -52,7 +68,7 @@ systemctl restart apache2
 # Output instructions
 echo "PrestaShop is installed. Access it at http://your_server_ip/"
 echo "Complete the installation via the web interface:"
-echo "Database Name: prestashop_db"
-echo "Database User: prestashop_user"
-echo "Database Password: pspass"
+echo "Database Name: prestashop"
+echo "Database User: ps_user"
+echo "Database Password: password"
 echo "MySQL Root Password: rootpass"
