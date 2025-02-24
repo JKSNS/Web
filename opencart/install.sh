@@ -53,13 +53,43 @@ else
     fi
 fi
 
-# Install PHP and required modules
+# Configure Apache to allow .htaccess overrides
+echo "Configuring Apache..."
+if [ "$pm" == "apt-get" ]; then
+    APACHE_CONF="/etc/apache2/sites-available/000-default.conf"
+    sudo sed -i '/<\/VirtualHost>/i \
+<Directory /var/www/html>\
+    AllowOverride All\
+</Directory>' "$APACHE_CONF"
+else
+    # For Fedora/RHEL, the main config is often /etc/httpd/conf/httpd.conf
+    APACHE_CONF="/etc/httpd/conf/httpd.conf"
+    sudo sed -i '/<\/Directory>/i \
+<Directory "/var/www/html">\
+    AllowOverride All\
+</Directory>' "$APACHE_CONF"
+fi
+
+# Enable mod_rewrite (Debian/Ubuntu) and restart Apache
+echo "Enabling mod_rewrite..."
+if [ "$pm" == "apt-get" ]; then
+    sudo a2enmod rewrite
+fi
+
+if [ "$pm" == "apt-get" ]; then
+    sudo systemctl restart apache2
+else
+    sudo systemctl restart httpd
+fi
+
+# Install PHP and required extensions
 echo "Installing PHP and required modules..."
 if [ "$pm" == "apt-get" ]; then
     eval "$install_cmd php libapache2-mod-php php-cli php-common php-mbstring php-gd php-intl php-xml php-mysql php-zip php-curl php-xmlrpc"
 else
-    # Package names for Fedora/RHEL might differ
-    eval "$install_cmd php php-mysqlnd php-cli php-common php-mbstring php-gd php-intl php-xml php-zip php-curl"
+    # Package names may vary; adjust accordingly for your distro.
+    # This example is for Fedora/RHEL-like systems.
+    eval "$install_cmd php php-mysqlnd php-curl php-gd php-xml php-cli php-mbstring"
 fi
 
 # Restart Apache to load PHP modules
@@ -69,94 +99,56 @@ else
     sudo systemctl restart httpd
 fi
 
-# Install MariaDB server and client
-echo "Installing MariaDB server and client..."
+# Install MariaDB server
+echo "Installing MariaDB server..."
 if [ "$pm" == "apt-get" ]; then
-    eval "$install_cmd mariadb-server mariadb-client"
+    eval "$install_cmd mariadb-server"
 else
-    eval "$install_cmd mariadb-server mariadb"
+    # For Fedora/RHEL, package name might be mariadb-server or mysql-server
+    eval "$install_cmd mariadb-server"
 fi
 
-# (Optional) Secure MariaDB installation interactively.
-# Uncomment the next line to run the interactive secure installation.
+# Secure MariaDB installation (optional)
+# Uncomment the next line if you want to run the secure installation script interactively.
 # sudo mysql_secure_installation
 
 echo "Creating the OpenCart database and user..."
-# Replace 'strong_password' with your desired strong password.
-# If the root user does not have a password, remove the -p flag.
+# Replace 'PASSWORD' with a strong password of your choice
 sudo mysql -u root <<EOF
 CREATE DATABASE opencartdb;
-CREATE USER 'opencart_user'@'localhost' IDENTIFIED BY 'strong_password';
+CREATE USER 'opencart_user'@'localhost' IDENTIFIED BY 'PASSWORD';
 GRANT ALL ON opencartdb.* TO 'opencart_user'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
-# Download and install OpenCart
+# Change directory to Apache web root and download OpenCart
 echo "Downloading OpenCart..."
-cd /tmp
+if [ "$pm" == "apt-get" ]; then
+    WEB_ROOT="/var/www/html"
+else
+    # On Fedora/RHEL systems the document root is often /var/www/html as well.
+    WEB_ROOT="/var/www/html"
+fi
+cd "$WEB_ROOT"
+
 sudo wget https://github.com/opencart/opencart/releases/download/3.0.2.0/3.0.2.0-OpenCart.zip
 
-echo "Unzipping OpenCart..."
-sudo apt install unzip -y  # or use the install_cmd for your distro if not using apt
-sudo unzip 3.0.2.0-OpenCart.zip
+echo "OpenCart installation script completed successfully."
 
-echo "Moving OpenCart files to web root..."
-WEB_ROOT="/var/www/html"
-sudo mv upload/ "$WEB_ROOT/opencart"
+# Install unzip if not already present
+eval "$install_cmd unzip"
 
-echo "Configuring OpenCart..."
-# Copy configuration files
-sudo cp "$WEB_ROOT/opencart/config-dist.php" "$WEB_ROOT/opencart/config.php"
-sudo cp "$WEB_ROOT/opencart/admin/config-dist.php" "$WEB_ROOT/opencart/admin/config.php"
+# Unzip OpenCart into a folder named 'opencart'
+sudo unzip 3.0.2.0-OpenCart.zip -d opencart
 
-# Set proper permissions and ownership
+# OPTIONAL: If you want to copy the content of `upload/` to the main opencart folder:
+# sudo cp -R opencart/upload/* opencart/
+
+# Set correct permissions and ownership for the web directory
 sudo chmod -R 755 "$WEB_ROOT/opencart"
 if [ "$pm" == "apt-get" ]; then
     sudo chown -R www-data:www-data "$WEB_ROOT/opencart"
 else
-    # On Fedora/RHEL systems Apache often runs as 'apache'
+    # On Fedora/RHEL the Apache user is usually 'apache'
     sudo chown -R apache:apache "$WEB_ROOT/opencart"
 fi
-
-# Create Apache VirtualHost configuration for OpenCart
-echo "Creating VirtualHost configuration for OpenCart..."
-if [ "$pm" == "apt-get" ]; then
-    VHOST_PATH="/etc/apache2/sites-available/opencart.conf"
-else
-    # For Fedora/RHEL systems, adjust path as necessary.
-    VHOST_PATH="/etc/httpd/conf.d/opencart.conf"
-fi
-
-sudo bash -c "cat > $VHOST_PATH" <<EOF
-<VirtualHost *:80>
-    ServerName example.com
-    DocumentRoot ${WEB_ROOT}/opencart/upload/
-
-    <Directory ${WEB_ROOT}/opencart/upload/>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-EOF
-
-# Enable the new VirtualHost and disable the default site if on Debian-based systems
-if [ "$pm" == "apt-get" ]; then
-    sudo a2ensite opencart.conf
-    sudo a2dissite 000-default.conf
-    sudo systemctl restart apache2
-else
-    # For Fedora/RHEL, restart Apache to pick up new configuration
-    sudo systemctl restart httpd
-fi
-
-# Enable mod_rewrite for URL rewriting
-echo "Enabling mod_rewrite..."
-if [ "$pm" == "apt-get" ]; then
-    sudo a2enmod rewrite
-    sudo systemctl restart apache2
-else
-    # On systems like Fedora/RHEL, mod_rewrite is usually enabled by default.
-    sudo systemctl restart httpd
-fi
-
-echo "OpenCart installation script completed successfully."
