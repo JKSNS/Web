@@ -56,6 +56,10 @@ detect_system_info
 echo "Updating system..."
 eval "$update_cmd"
 
+# Ensure curl is installed (prerequisite for downloading WordPress)
+echo "Installing curl..."
+eval "$install_cmd curl"
+
 # Install Apache, PHP and required PHP extensions, and MySQL/MariaDB
 echo "Installing Apache, PHP, and MySQL/MariaDB..."
 if [ "$pm" == "apt-get" ]; then
@@ -113,10 +117,9 @@ sudo systemctl reload $apache_service
 
 # Create WordPress database and user
 echo "Creating the WordPress database and user..."
-# Replace <your-password> with a strong password
 sudo mysql -u root <<EOF
 CREATE DATABASE wordpress;
-CREATE USER 'wordpress'@'localhost' IDENTIFIED BY '<your-password>';
+CREATE USER 'wordpress'@'localhost' IDENTIFIED BY 'PASSWORD';
 GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON wordpress.* TO 'wordpress'@'localhost';
 FLUSH PRIVILEGES;
 EOF
@@ -142,7 +145,7 @@ WP_CONFIG="$WEB_ROOT/wordpress/wp-config.php"
 sudo -u $( [ "$pm" == "apt-get" ] && echo "www-data" || echo "apache" ) cp "$WEB_ROOT/wordpress/wp-config-sample.php" "$WP_CONFIG"
 sudo -u $( [ "$pm" == "apt-get" ] && echo "www-data" || echo "apache" ) sed -i 's/database_name_here/wordpress/' "$WP_CONFIG"
 sudo -u $( [ "$pm" == "apt-get" ] && echo "www-data" || echo "apache" ) sed -i 's/username_here/wordpress/' "$WP_CONFIG"
-sudo -u $( [ "$pm" == "apt-get" ] && echo "www-data" || echo "apache" ) sed -i 's/password_here/<your-password>/' "$WP_CONFIG"
+sudo -u $( [ "$pm" == "apt-get" ] && echo "www-data" || echo "apache" ) sed -i 's/password_here/PASSWORD/' "$WP_CONFIG"
 
 # Fetch fresh WordPress secret keys and append them to wp-config.php
 echo "Fetching fresh secret keys..."
