@@ -41,7 +41,7 @@ sudo apt-get install mariadb-server -y
 
 echo "Creating the PrestaShop database and user..."
 # Replace 'PASSWORD' below with a strong password of your choice
-sudo mysql -u root -p <<EOF
+sudo mysql -u root <<EOF
 CREATE DATABASE prestashop;
 CREATE USER 'ps_user'@'localhost' IDENTIFIED BY 'PASSWORD';
 GRANT ALL ON prestashop.* TO 'ps_user'@'localhost';
