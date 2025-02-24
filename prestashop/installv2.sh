@@ -21,6 +21,10 @@ mysql -e "DELETE FROM mysql.user WHERE User='';"
 mysql -e "DROP DATABASE IF EXISTS test;"
 mysql -e "FLUSH PRIVILEGES;"
 
+# Ensure MySQL root user has proper privileges (fix for ERROR 1356)
+mysql -uroot -prootpass -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;"
+mysql -uroot -prootpass -e "FLUSH PRIVILEGES;"
+
 # Create PrestaShop database and user with explicit root login
 echo "Setting up the database..."
 mysql -uroot -prootpass -e "CREATE DATABASE prestashop;"
@@ -71,6 +75,9 @@ a2enmod rewrite
 
 # Restart Apache to apply changes
 systemctl restart apache2
+
+# Verify Apache configuration
+apache2ctl configtest
 
 # Output instructions
 echo "PrestaShop is installed. Access it at http://your_server_ip/"
