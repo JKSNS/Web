@@ -39,13 +39,6 @@ sudo apt-get install mariadb-server -y
 # Uncomment the next line if you want to run the secure installation script interactively.
 # sudo mysql_secure_installation
 
-# Create PrestaShop database and user
-echo "Setting up the database..."
-sudo mysql -e "CREATE DATABASE prestashop;"
-sudo mysql -e "CREATE USER 'ps_user'@'localhost' IDENTIFIED BY 'password';"
-sudo mysql -e "GRANT ALL ON prestashop.* TO 'ps_user'@'localhost';"
-sudo mysql -e "FLUSH PRIVILEGES;"
-
 # Change directory to Apache web root and download PrestaShop
 echo "Downloading PrestaShop..."
 cd /var/www/html
