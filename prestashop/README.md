@@ -2,6 +2,36 @@
 
 Congratulations! You have successfully executed the PrestaShop installation script. This README will guide you through the final steps to get your PrestaShop store up and running.
 
+## 0. DOS (Windows) to Unix Line Endings
+
+If you encountered an error such as:
+
+```
+sudo: unable to execute ./install.sh: No such file or directory
+```
+
+even though the file is clearly there, it likely means the script was created or edited on Windows and has **CRLF** (Windows) line endings instead of **LF** (Unix) line endings. To fix this:
+
+1. **Install `dos2unix`:**
+   ```bash
+   sudo apt-get update
+   sudo apt-get install dos2unix
+   ```
+2. **Convert the script:**
+   ```bash
+   dos2unix install.sh
+   ```
+3. **Make it executable (if needed):**
+   ```bash
+   chmod +x install.sh
+   ```
+4. **Re-run the script**:
+   ```bash
+   sudo ./install.sh
+   ```
+
+Once the script runs successfully, follow the steps below to complete your Wordpress setup.
+
 ## 1. Access the Installation Wizard
 
 1. **Open your browser** and navigate to the **public IP address** or **domain name** of your server.  
