@@ -50,6 +50,8 @@ Congratulations! You have successfully executed the PrestaShop installation scri
   Follow the link provided at the end of the installation to access the admin login page. Enter the **admin email** and **password** you created to manage your store settings, products, orders, and more.
 
 > **Important:** For security reasons, PrestaShop may ask you to rename or delete the `/install` folder after installation. If so, follow the on‑screen instructions.
+<br>
+<br>
 sudo rm -rf /var/www/html/prestashop/install
 
 ## 7. Next Steps
