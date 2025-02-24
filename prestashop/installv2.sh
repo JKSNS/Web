@@ -21,7 +21,7 @@ mysql -e "DELETE FROM mysql.user WHERE User='';"
 mysql -e "DROP DATABASE IF EXISTS test;"
 mysql -e "FLUSH PRIVILEGES;"
 
-# Create PrestaShop database and user
+# Create PrestaShop database and user with explicit root login
 echo "Setting up the database..."
 mysql -uroot -prootpass -e "CREATE DATABASE prestashop;"
 mysql -uroot -prootpass -e "CREATE USER 'ps_user'@'localhost' IDENTIFIED BY 'password';"
@@ -40,6 +40,9 @@ unzip prestashop_*.zip  # Extracts the inner zip file (PrestaShop archives often
 mv prestashop prestashop_files  # Rename for clarity
 rm -f prestashop.zip prestashop_*.zip
 
+# Remove default Apache index.html to prevent it from overriding PrestaShop
+rm -f /var/www/html/index.html
+
 # Set permissions for Apache
 echo "Setting permissions..."
 chown -R www-data:www-data /var/www/html/prestashop_files
@@ -52,6 +55,7 @@ cat > /etc/apache2/sites-available/prestashop.conf << EOL
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html/prestashop_files
     <Directory /var/www/html/prestashop_files>
+        Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
@@ -60,9 +64,12 @@ cat > /etc/apache2/sites-available/prestashop.conf << EOL
 </VirtualHost>
 EOL
 
-# Enable the site, rewrite module, and restart Apache
+# Disable default Apache site and enable PrestaShop site
+a2dissite 000-default.conf
 a2ensite prestashop.conf
 a2enmod rewrite
+
+# Restart Apache to apply changes
 systemctl restart apache2
 
 # Output instructions
