@@ -1,7 +1,5 @@
 # Post‑Installation Instructions for PrestaShop
 
-Congratulations on successfully executing the PrestaShop installation script! Follow these steps to complete the setup and launch your store!
-
 ---
 
 ## 0. Converting DOS (Windows) to Unix Line Endings
