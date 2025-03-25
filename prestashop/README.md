@@ -69,7 +69,7 @@ Once the script runs successfully, proceed with the steps below.
    - **Database Server Address:** Typically `127.0.0.1` or `localhost`
    - **Database Name:** `prestashop`
    - **Database User:** `ps_user`
-   - **Database Password:** Replace `PASSWORD` with your actual password from the script.
+   - **Database Password:** Replace `PASSWORD` with your actual password from the script (we keep the password as "PASSWORD" in the default installation script). 
 2. Click **Test your database connection now!** to ensure PrestaShop can connect.
 3. If the message “Database is connected” appears, click **Next**.
 
