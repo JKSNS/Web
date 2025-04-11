@@ -55,11 +55,7 @@ function install_web_app {
 
     # Install Apache
     echo "Installing Apache..."
-    if [ "$pm" == "apt-get" ]; then
-        eval "$install_cmd $apache_service"
-    else
-        eval "$install_cmd $apache_service"
-    fi
+    eval "$install_cmd $apache_service"
 
     # Configure Apache to allow .htaccess overrides
     echo "Configuring Apache..."
@@ -99,11 +95,21 @@ function install_web_app {
     echo "Installing MariaDB server..."
     eval "$install_cmd mariadb-server"
 
+    # Enable & start MariaDB, then verify it's running
+    echo "Starting MariaDB service..."
+    sudo systemctl enable mariadb
+    sudo systemctl start mariadb
+
+    if ! systemctl is-active --quiet mariadb; then
+        echo "[X] MariaDB service failed to start. Check logs with: sudo journalctl -xeu mariadb"
+        exit 1
+    fi
+
     # Create PrestaShop database and user gracefully
     echo "Creating the PrestaShop database and user..."
     DB_NAME="prestashop"
     DB_USER="ps_user"
-    DB_PASS="PASSWORD" # Replace with a strong password
+    DB_PASS="PASSWORD" # ← replace with a strong password
 
     # Check if database exists
     if sudo mysql -u root -e "use $DB_NAME" 2>/dev/null; then
@@ -122,7 +128,7 @@ function install_web_app {
     # Grant privileges
     sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
 
-    # Change directory to web root and download PrestaShop
+    # Download and extract PrestaShop
     echo "Downloading PrestaShop..."
     cd "$web_root"
     if [ -d "prestashop" ]; then
@@ -163,11 +169,6 @@ function uninstall_web_app {
     sudo mysql -u root -e "FLUSH PRIVILEGES;"
     echo "[*] PrestaShop database and user removed."
 
-    # Optionally remove Apache, PHP, and MariaDB (commented out for safety)
-    # echo "Removing Apache, PHP, and MariaDB..."
-    # eval "$install_cmd --purge remove -y $apache_service php mariadb-server"
-    # echo "[*] Apache, PHP, and MariaDB removed."
-
     # Clean up downloaded zip file
     if [ -f "$web_root/prestashop_edition_basic_version_8.1.7.zip" ]; then
         sudo rm "$web_root/prestashop_edition_basic_version_8.1.7.zip"
@@ -187,22 +188,12 @@ function display_menu {
     echo "================================="
     read -p "Please select an option [1-3]: " choice
     case $choice in
-        1)
-            install_web_app
-            ;;
-        2)
-            uninstall_web_app
-            ;;
-        3)
-            echo "Exiting script..."
-            exit 0
-            ;;
-        *)
-            echo "[X] Invalid option, please try again."
-            display_menu
-            ;;
+        1) install_web_app ;;
+        2) uninstall_web_app ;;
+        3) echo "Exiting script..."; exit 0 ;;
+        *) echo "[X] Invalid option, please try again."; display_menu ;;
     esac
 }
 
-# Main script execution
+# Kick off
 display_menu
